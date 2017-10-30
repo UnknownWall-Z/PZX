@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.memory.pzp.base.mapper.IplogMapper" >
+  <resultMap id="BaseResultMap" type="com.memory.pzp.base.domain.Iplog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="ip" property="ip" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="TINYINT" />
+    <result column="username" property="username" jdbcType="VARCHAR" />
+    <result column="logintime" property="loginTime" jdbcType="TIMESTAMP" />
+    <result column="userType" property="userType" jdbcType="VARCHAR" />
+  </resultMap>
+  <insert id="insert" parameterType="com.memory.pzp.base.domain.Iplog" useGeneratedKeys="true" keyProperty="id" >
+    insert into iplog (ip, state, username, 
+      logintime,userType)
+    values (#{ip,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT}, #{username,jdbcType=VARCHAR}, 
+      #{loginTime,jdbcType=TIMESTAMP},#{userType})
+  </insert>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, ip, state, username, logintime,userType
+    from iplog
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <sql id="base_condition">
+    <where>
+      <if test="beginDate!=null">
+        AND logintime &gt; #{beginDate}
+      </if>
+      <if test="endDate!=null">
+        AND logintime &lt; #{endDate}
+      </if>
+      <if test="username!=null">
+        AND username=#{username}
+      </if>
+      <if test="state>-1">
+        AND state=#{state}
+      </if>
+      <if test="userType==0">
+        AND userType='管理员'
+      </if>
+      <if test="userType==1">
+        AND userType='普通用户'
+      </if>
+    </where>
+  </sql>
+  <select id="count" resultType="java.lang.Integer">
+    SELECT count(id)
+    FROM iplog
+    <include refid="base_condition"/>
+  </select>
+  <select id="listData" resultType="com.memory.pzp.base.domain.Iplog">
+    SELECT id, ip, state, username, logintime,userType
+    FROM iplog
+    <include refid="base_condition"/>
+    limit #{start},#{pageSize}
+  </select>
+
+
+</mapper>

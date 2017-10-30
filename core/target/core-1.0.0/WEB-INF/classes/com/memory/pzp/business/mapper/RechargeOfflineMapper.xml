@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.memory.pzp.business.mapper.RechargeOfflineMapper" >
+  <resultMap id="BaseResultMap" type="com.memory.pzp.business.domain.RechargeOffline" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="state" property="state" jdbcType="TINYINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="auditTime" property="auditTime" jdbcType="TIMESTAMP" />
+    <result column="applyTime" property="applyTime" jdbcType="TIMESTAMP" />
+    <result column="tradeCode" property="tradeCode" jdbcType="VARCHAR" />
+    <result column="tradeTime" property="tradeTime" jdbcType="TIMESTAMP" />
+    <result column="amount" property="amount" jdbcType="DECIMAL" />
+    <result column="note" property="note" jdbcType="VARCHAR" />
+    <association property="applier" javaType="com.memory.pzp.base.domain.Logininfo" columnPrefix="ap_">
+      <id column="id" property="id"></id>
+      <result column="username" property="username"></result>
+    </association>
+    <association property="auditor" javaType="com.memory.pzp.base.domain.Logininfo" columnPrefix="au_">
+      <id column="id" property="id"></id>
+      <result column="username" property="username"></result>
+    </association>
+    <association property="bankinfo" javaType="com.memory.pzp.business.domain.PlatformBankInfo" columnPrefix="p_"
+                 resultMap="com.memory.pzp.business.mapper.PlatformBankInfoMapper.BaseResultMap" ></association>
+  </resultMap>
+  <insert id="insert" parameterType="com.memory.pzp.business.domain.RechargeOffline" useGeneratedKeys="true" keyProperty="id" >
+    insert into rechargeoffline (state, remark, auditTime, 
+      applyTime, auditor_id, applier_id, 
+      tradeCode, tradeTime, amount, 
+      note, bankinfo_id)
+    values (#{state,jdbcType=TINYINT}, #{remark,jdbcType=VARCHAR}, #{auditTime,jdbcType=TIMESTAMP}, 
+      #{applyTime,jdbcType=TIMESTAMP}, #{auditor.id,jdbcType=BIGINT}, #{applier.id,jdbcType=BIGINT},
+      #{tradeCode,jdbcType=VARCHAR}, #{tradeTime,jdbcType=TIMESTAMP}, #{amount,jdbcType=DECIMAL}, 
+      #{note,jdbcType=VARCHAR}, #{bankinfo.id,jdbcType=BIGINT})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.memory.pzp.business.domain.RechargeOffline" >
+    update rechargeoffline
+    set state = #{state,jdbcType=TINYINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      auditTime = #{auditTime,jdbcType=TIMESTAMP},
+      applyTime = #{applyTime,jdbcType=TIMESTAMP},
+      auditor_id = #{auditor.id,jdbcType=BIGINT},
+      applier_id = #{applier.id,jdbcType=BIGINT},
+      tradeCode = #{tradeCode,jdbcType=VARCHAR},
+      tradeTime = #{tradeTime,jdbcType=TIMESTAMP},
+      amount = #{amount,jdbcType=DECIMAL},
+      note = #{note,jdbcType=VARCHAR},
+      bankinfo_id = #{bankinfo.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select <include refid="base_column" />
+    from <include refid="base_table"/>
+    where r.id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, state, remark, auditTime, applyTime, auditor_id, applier_id, tradeCode, 
+    tradeTime, amount, note, bankinfo_id
+    from rechargeoffline
+  </select>
+
+
+  <select id="count" resultType="java.lang.Integer">
+    SELECT count(r.id)
+    FROM <include refid="base_table"/>
+    <include refid="base_where"/>
+  </select>
+  <select id="listData" resultMap="BaseResultMap">
+    SELECT <include refid="base_column"/>
+    FROM <include refid="base_table"/>
+    <include refid="base_where"/>
+    LIMIT #{start},#{pageSize}
+  </select>
+
+  <sql id="base_table">
+    rechargeoffline r
+    JOIN logininfo ap ON r.applier_id = ap.id LEFT JOIN logininfo au ON r.auditor_id = au.id
+    JOIN platformbankinfo p ON r.bankinfo_id = p.id
+  </sql>
+
+  <sql id="base_where">
+    <where>
+      <if test="beginDate!=null">
+        AND r.tradeTime &gt;= #{beginDate}
+      </if>
+      <if test="endDate!=null">
+        AND r.tradeTime &lt;= #{endDate}
+      </if>
+      <if test="state>-1">
+        AND r.state = #{state}
+      </if>
+      <if test="bankInfoId>-1">
+        AND r.bankinfo_id = #{bankInfoId}
+      </if>
+      <if test="tradeCode!=null">
+        AND r.tradeCode = #{tradeCode}
+      </if>
+    </where>
+  </sql>
+
+  <sql id="base_column">
+    r.id, r.state, r.remark, r.auditTime, r.applyTime, r.tradeCode, r.tradeTime, r.amount, r.note,
+    ap.id as ap_id,ap.username as ap_username,
+    au.id as au_id,au.username as au_username,
+    p.id as p_id,p.bankname as p_bankname,p.accountname as p_accountname,p.banknumber as p_banknumber,p.bankforkname as p_bankforkname
+  </sql>
+
+</mapper>

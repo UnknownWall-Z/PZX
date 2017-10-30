@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.memory.pzp.base.mapper.UserfileMapper" >
+  <resultMap id="BaseResultMap" type="com.memory.pzp.base.domain.UserFile" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="state" property="state" jdbcType="TINYINT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="auditTime" property="auditTime" jdbcType="TIMESTAMP" />
+    <result column="applyTime" property="applyTime" jdbcType="TIMESTAMP" />
+    <result column="auditor_id" property="au_id" jdbcType="BIGINT" />
+    <result column="a_username" property="au_username"/>
+    <result column="applier_id" property="ap_id" jdbcType="BIGINT" />
+    <result column="u_username" property="ap_username"/>
+    <result column="score" property="score" jdbcType="TINYINT" />
+    <result column="file" property="file" jdbcType="VARCHAR" />
+    <association property="filetype" javaType="com.memory.pzp.base.domain.SystemdictionaryItem" columnPrefix="s_">
+      <id column="id" property="id"></id>
+      <result column="title" property="title"></result>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from userfile
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="com.memory.pzp.base.domain.UserFile" useGeneratedKeys="true" keyProperty="id" >
+    insert into userfile (state, remark, auditTime, 
+      applyTime, auditor_id, applier_id, 
+      score, file, filetype_id
+      )
+    values (#{state,jdbcType=TINYINT}, #{remark,jdbcType=VARCHAR}, #{auditTime,jdbcType=TIMESTAMP},
+      #{applyTime,jdbcType=TIMESTAMP}, #{au_id,jdbcType=BIGINT}, #{ap_id,jdbcType=BIGINT},
+      #{score,jdbcType=TINYINT}, #{file,jdbcType=VARCHAR}, #{filetype.id,jdbcType=BIGINT}
+      )
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.memory.pzp.base.domain.UserFile" >
+    update userfile
+    set state = #{state,jdbcType=TINYINT},
+      remark = #{remark,jdbcType=VARCHAR},
+      auditTime = #{auditTime,jdbcType=TIMESTAMP},
+      applyTime = #{applyTime,jdbcType=TIMESTAMP},
+      auditor_id = #{au_id,jdbcType=BIGINT},
+      applier_id = #{ap_id,jdbcType=BIGINT},
+      score = #{score,jdbcType=TINYINT},
+      file = #{file,jdbcType=VARCHAR},
+      filetype_id = #{filetype.id,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select f.id, f.state, f.remark, f.auditTime, f.applyTime, f.auditor_id, f.applier_id, f.score, f.file,
+    f.filetype_id,s.id s_id,s.title s_title
+     FROM userfile f LEFT JOIN systemdictionaryitem s ON f.filetype_id=s.id
+    where f.id = #{id,jdbcType=BIGINT}
+  </select>
+  <sql id="base_where">
+    <where>
+      f.applier_id=#{askId}
+      <if test="isNull">
+       AND  f.filetype_id IS NULL
+      </if>
+      <if test="!isNull">
+       AND  f.filetype_id IS NOT NULL
+      </if>
+    </where>
+  </sql>
+  <select id="listFile" resultMap="BaseResultMap">
+    SELECT f.id, f.state, f.remark, f.auditTime, f.applyTime, f.auditor_id, f.applier_id, f.score, f.file,
+    f.filetype_id,s.id s_id,s.title s_title
+    FROM userfile f LEFT JOIN systemdictionaryitem s ON f.filetype_id=s.id
+    <include refid="base_where"/>
+  </select>
+
+  <select id="count" resultType="java.lang.Integer">
+      SELECT COUNT(f.id)
+      FROM userfile f LEFT JOIN systemdictionaryitem s ON f.filetype_id=s.id
+      <include refid="base_query_where"/>
+  </select>
+  <select id="listData" resultMap="BaseResultMap">
+    SELECT <include refid="base_query_column"/>,
+    a.id a_id,a.username a_username
+    FROM <include refid="base_table"/>
+    LEFT JOIN logininfo a ON f.auditor_id=a.id
+    <include refid="base_query_where"/>
+    <if test="isPaging>0">
+      LIMIT #{start},#{pageSize}
+    </if>
+  </select>
+  <select id="getUserFile" resultMap="BaseResultMap">
+    SELECT <include refid="base_query_column"/>
+    FROM <include refid="base_table"/>
+    WHERE f.id = #{id,jdbcType=BIGINT}
+  </select>
+
+  <sql id="base_table">
+    userfile f
+    LEFT JOIN systemdictionaryitem s ON f.filetype_id=s.id
+    JOIN logininfo u ON f.applier_id = u.id
+  </sql>
+
+  <sql id="base_query_column">
+    f.id, f.state, f.remark, f.auditTime, f.applyTime, f.auditor_id, f.applier_id, f.score, f.file,
+    f.filetype_id,s.id s_id,s.title s_title,u.id u_id,u.username u_username
+  </sql>
+
+  <sql id="base_query_where">
+      <where>
+        <if test="applierId>-1">
+          AND f.applier_id=#{applierId}
+        </if>
+        <if test="state>-1">
+          AND f.state = #{state}
+        </if>
+        <if test="beginDate!=null">
+          AND f.applyTime &gt;= #{beginDate}
+        </if>
+        <if test="endDate!=null">
+          AND f.applyTime &lt;= #{beginDate}
+        </if>
+        AND f.filetype_id IS NOT NULL
+      </where>
+  </sql>
+
+
+</mapper>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.memory.pzp.business.mapper.PlatformBankInfoMapper" >
+  <resultMap id="BaseResultMap" type="com.memory.pzp.business.domain.PlatformBankInfo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="bankname" property="bankname" jdbcType="VARCHAR" />
+    <result column="accountname" property="accountname" jdbcType="VARCHAR" />
+    <result column="banknumber" property="banknumber" jdbcType="VARCHAR" />
+    <result column="bankforkname" property="bankforkname" jdbcType="VARCHAR" />
+  </resultMap>
+  <insert id="insert" parameterType="com.memory.pzp.business.domain.PlatformBankInfo" useGeneratedKeys="true" keyProperty="id" >
+    insert into platformbankinfo (bankname, accountname, banknumber, 
+      bankforkname)
+    values (#{bankname,jdbcType=VARCHAR}, #{accountname,jdbcType=VARCHAR}, #{banknumber,jdbcType=VARCHAR}, 
+      #{bankforkname,jdbcType=VARCHAR})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com.memory.pzp.business.domain.PlatformBankInfo" >
+    update platformbankinfo
+    set bankname = #{bankname,jdbcType=VARCHAR},
+      accountname = #{accountname,jdbcType=VARCHAR},
+      banknumber = #{banknumber,jdbcType=VARCHAR},
+      bankforkname = #{bankforkname,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select id, bankname, accountname, banknumber, bankforkname
+    from platformbankinfo
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, bankname, accountname, banknumber, bankforkname
+    from platformbankinfo
+  </select>
+
+  <select id="count" resultType="java.lang.Integer">
+    select COUNT(id)
+    from platformbankinfo
+  </select>
+  <select id="listData" resultMap="BaseResultMap">
+    SELECT id, bankname, accountname, banknumber, bankforkname
+    FROM platformbankinfo
+    LIMIT #{start},#{pageSize}
+  </select>
+</mapper>
